@@ -34,10 +34,6 @@ public class NetUtil
 		return false;
 	}
 
-	/**
-	 * 获取本地ip
-	 * @return
-	 */
 	public static String getLocalIp()
 	{
 		String ip = null;
