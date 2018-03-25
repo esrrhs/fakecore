@@ -1,16 +1,17 @@
 package com.github.esrrhs.fakecore.codec;
 
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Random;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EncryptUtil
 {
@@ -80,9 +81,7 @@ public class EncryptUtil
 		return null;
 	}
 
-	/*
-	 *生成密钥 encodeKeyA.length=24
-	 */
+	// 生成密钥 encodeKeyA.length=24
 	public static byte[] genCroptyKey(byte[] encodeKeyA, String randomStrB)
 	{
 		if (encodeKeyA == null)
@@ -179,12 +178,7 @@ public class EncryptUtil
 		return b;
 	}
 
-	/**
-	 * 传输加密参数，组合
-	 * @param oraStr
-	 * @param key
-	 * @return
-	 */
+	// 传输加密参数，组合
 	public static String restructParam(String oraStr)
 	{
 
@@ -211,9 +205,7 @@ public class EncryptUtil
 		return null;
 	}
 
-	/**
-	 * 生成随机字符串
-	 */
+	// 生成随机字符串
 	public static String RndString(int Length, int[] Seed)
 	{
 		String strSep = ",";

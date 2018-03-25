@@ -1,11 +1,11 @@
 package com.github.esrrhs.fakecore.table;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class TableMgr
 {
@@ -104,21 +104,12 @@ public final class TableMgr
 		return count;
 	}
 
-	/**
-	 * 初始化牌桌
-	 * @param table
-	 * @return
-	 */
 	public static void addTable(Table table)
 	{
 		Map<Integer, Table> tableMap = getRoomTables(table.getRoomId());
 		tableMap.put(table.getTableId(), table);
 	}
 
-	/**
-	 * 销毁牌桌
-	 * @param table
-	 */
 	public static void destroyTable(Table table)
 	{
 		log.info("debug destroyTable tableId:{}", table.getTableId());
