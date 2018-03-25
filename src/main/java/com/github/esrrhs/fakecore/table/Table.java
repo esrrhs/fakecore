@@ -126,7 +126,7 @@ public final class Table extends Thread
 		return null;
 	}
 
-	protected void addPlayer(TablePlayerInfo newPlayer)
+	public void addPlayer(TablePlayerInfo newPlayer)
 	{
 		if (players.contains(newPlayer))
 		{
@@ -137,7 +137,7 @@ public final class Table extends Thread
 		players.add(newPlayer);
 	}
 
-	protected void removePlayer(TablePlayerInfo playerInfo)
+	public void removePlayer(TablePlayerInfo playerInfo)
 	{
 		if (playerInfo == null)
 		{
