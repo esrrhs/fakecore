@@ -30,6 +30,19 @@ public class Message
 	private WebSocket webSocket;
 	private WSObject wsObject;
 
+	public Object getLink()
+	{
+		if (getChannel() != null)
+		{
+			return getChannel();
+		}
+		else if (getWebSocket() != null)
+		{
+			return getWebSocket();
+		}
+		return null;
+	}
+
 	public short getId()
 	{
 		return id;
@@ -98,5 +111,43 @@ public class Message
 	public void setWsObject(WSObject wsObject)
 	{
 		this.wsObject = wsObject;
+	}
+
+	public String getRemoteAddress()
+	{
+		if (getChannel() != null)
+		{
+			return getChannel().remoteAddress().toString();
+		}
+		else if (getWebSocket() != null)
+		{
+			return getWebSocket().getRemoteSocketAddress().toString();
+		}
+		return "";
+	}
+
+	public String getLocalAddress()
+	{
+		if (getChannel() != null)
+		{
+			return getChannel().localAddress().toString();
+		}
+		else if (getWebSocket() != null)
+		{
+			return getWebSocket().getLocalSocketAddress().toString();
+		}
+		return "";
+	}
+
+	public void closeLink()
+	{
+		if (getChannel() != null)
+		{
+			getChannel().close();
+		}
+		else if (getWebSocket() != null)
+		{
+			getWebSocket().close();
+		}
 	}
 }
