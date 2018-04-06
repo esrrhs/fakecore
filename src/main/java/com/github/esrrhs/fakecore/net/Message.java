@@ -150,4 +150,16 @@ public class Message
 			getWebSocket().close();
 		}
 	}
+
+	public static void closeLink(Object link)
+	{
+		if (link instanceof Channel)
+		{
+			((Channel) link).close();
+		}
+		else if (link instanceof WebSocket)
+		{
+			((WebSocket) link).close();
+		}
+	}
 }
