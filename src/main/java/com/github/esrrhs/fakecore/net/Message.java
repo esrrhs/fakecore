@@ -1,5 +1,7 @@
 package com.github.esrrhs.fakecore.net;
 
+import org.java_websocket.WebSocket;
+
 import io.netty.channel.Channel;
 
 public class Message
@@ -25,6 +27,8 @@ public class Message
 	private String sessionId = "0";
 	private Channel channel;
 	private TcpObject tcpObject;
+	private WebSocket webSocket;
+	private WSObject wsObject;
 
 	public short getId()
 	{
@@ -74,5 +78,25 @@ public class Message
 	public void setTcpObject(TcpObject tcpObject)
 	{
 		this.tcpObject = tcpObject;
+	}
+
+	public WebSocket getWebSocket()
+	{
+		return webSocket;
+	}
+
+	public void setWebSocket(WebSocket webSocket)
+	{
+		this.webSocket = webSocket;
+	}
+
+	public WSObject getWsObject()
+	{
+		return wsObject;
+	}
+
+	public void setWsObject(WSObject wsObject)
+	{
+		this.wsObject = wsObject;
 	}
 }
