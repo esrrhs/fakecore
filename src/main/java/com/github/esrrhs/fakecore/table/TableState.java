@@ -10,9 +10,9 @@ public class TableState
 {
 	private static Logger log = LoggerFactory.getLogger(TableState.class);
 
-	private Table gameTable;
-	private HashSet<String> waitTimer = new HashSet<>();
-	private long stateEnterTime;
+	protected Table gameTable;
+	protected HashSet<String> waitTimer = new HashSet<>();
+	protected long stateEnterTime;
 
 	public TableState(Table gameTable)
 	{
