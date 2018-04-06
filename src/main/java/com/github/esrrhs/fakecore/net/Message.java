@@ -1,9 +1,5 @@
 package com.github.esrrhs.fakecore.net;
 
-import org.java_websocket.WebSocket;
-
-import io.netty.channel.Channel;
-
 public class Message
 {
 	public static class PingPongData
@@ -25,23 +21,7 @@ public class Message
 	private short id;
 	private byte[] data = new byte[0];
 	private String sessionId = "0";
-	private Channel channel;
-	private TcpObject tcpObject;
-	private WebSocket webSocket;
-	private WSObject wsObject;
-
-	public Object getLink()
-	{
-		if (getChannel() != null)
-		{
-			return getChannel();
-		}
-		else if (getWebSocket() != null)
-		{
-			return getWebSocket();
-		}
-		return null;
-	}
+	private Link link;
 
 	public short getId()
 	{
@@ -73,93 +53,13 @@ public class Message
 		this.sessionId = sessionId;
 	}
 
-	public Channel getChannel()
+	public Link getLink()
 	{
-		return channel;
+		return link;
 	}
 
-	public void setChannel(Channel channel)
+	public void setLink(Link link)
 	{
-		this.channel = channel;
-	}
-
-	public TcpObject getTcpObject()
-	{
-		return tcpObject;
-	}
-
-	public void setTcpObject(TcpObject tcpObject)
-	{
-		this.tcpObject = tcpObject;
-	}
-
-	public WebSocket getWebSocket()
-	{
-		return webSocket;
-	}
-
-	public void setWebSocket(WebSocket webSocket)
-	{
-		this.webSocket = webSocket;
-	}
-
-	public WSObject getWsObject()
-	{
-		return wsObject;
-	}
-
-	public void setWsObject(WSObject wsObject)
-	{
-		this.wsObject = wsObject;
-	}
-
-	public String getRemoteAddress()
-	{
-		if (getChannel() != null)
-		{
-			return getChannel().remoteAddress().toString();
-		}
-		else if (getWebSocket() != null)
-		{
-			return getWebSocket().getRemoteSocketAddress().toString();
-		}
-		return "";
-	}
-
-	public String getLocalAddress()
-	{
-		if (getChannel() != null)
-		{
-			return getChannel().localAddress().toString();
-		}
-		else if (getWebSocket() != null)
-		{
-			return getWebSocket().getLocalSocketAddress().toString();
-		}
-		return "";
-	}
-
-	public void closeLink()
-	{
-		if (getChannel() != null)
-		{
-			getChannel().close();
-		}
-		else if (getWebSocket() != null)
-		{
-			getWebSocket().close();
-		}
-	}
-
-	public static void closeLink(Object link)
-	{
-		if (link instanceof Channel)
-		{
-			((Channel) link).close();
-		}
-		else if (link instanceof WebSocket)
-		{
-			((WebSocket) link).close();
-		}
+		this.link = link;
 	}
 }
