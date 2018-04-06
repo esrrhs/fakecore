@@ -139,4 +139,34 @@ public class Link
 			}
 		}
 	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		Link link = (Link) o;
+
+		if (channel != null ? !channel.equals(link.channel) : link.channel != null)
+			return false;
+		if (tcpObject != null ? !tcpObject.equals(link.tcpObject) : link.tcpObject != null)
+			return false;
+		if (webSocket != null ? !webSocket.equals(link.webSocket) : link.webSocket != null)
+			return false;
+		return !(wsObject != null ? !wsObject.equals(link.wsObject) : link.wsObject != null);
+
+	}
+
+	@Override
+	public int hashCode()
+	{
+		int result = channel != null ? channel.hashCode() : 0;
+		result = 31 * result + (tcpObject != null ? tcpObject.hashCode() : 0);
+		result = 31 * result + (webSocket != null ? webSocket.hashCode() : 0);
+		result = 31 * result + (wsObject != null ? wsObject.hashCode() : 0);
+		return result;
+	}
 }
