@@ -1,6 +1,7 @@
 package com.github.esrrhs.fakecore.net;
 
 import com.github.esrrhs.fakecore.codec.EncryptUtil;
+
 import io.netty.buffer.ByteBuf;
 
 /**
@@ -34,6 +35,11 @@ public class ClientMessageCodec implements MessageCodec
 
 		short msgid = in.readShort();
 		length -= 2;
+
+		if (length < 0)
+		{
+			throw new RuntimeException("length < 0 " + length);
+		}
 
 		Message m = new Message();
 		m.setId(msgid);
