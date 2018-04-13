@@ -89,7 +89,7 @@ public class Link
 		{
 			return getChannel().remoteAddress().toString();
 		}
-		else if (getWebSocket() != null)
+		else if (getWebSocket() != null && getWebSocket().getRemoteSocketAddress() != null)
 		{
 			return getWebSocket().getRemoteSocketAddress().toString();
 		}
