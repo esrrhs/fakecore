@@ -7,7 +7,7 @@
     <groupId>com.github.esrrhs</groupId>
     <artifactId>fakecore</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.9</version>
+    <version>1.0.10</version>
 
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -96,6 +96,12 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.0.13</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.38</version>
         </dependency>
 
     </dependencies>

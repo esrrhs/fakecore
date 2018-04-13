@@ -33,7 +33,7 @@ public class MySQLConn implements Closeable
 		this.mySQLInfo = mySQLInfo;
 		try
 		{
-			Class.forName("com.mysql.cj.jdbc.Driver");
+			Class.forName("com.mysql.jdbc.Driver");
 
 			log.info("start connect db...");
 			conn = DriverManager.getConnection(mySQLInfo.getUrl(), mySQLInfo.getUser(), mySQLInfo.getPasswd());
