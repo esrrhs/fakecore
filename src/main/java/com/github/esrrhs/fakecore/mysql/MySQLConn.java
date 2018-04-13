@@ -83,6 +83,7 @@ public class MySQLConn implements Closeable
 		int ret = 0;
 		try
 		{
+			log.info("executeUpdate ", sql);
 			ret = stmt.executeUpdate(sql);
 		}
 		catch (Exception e)
@@ -96,6 +97,7 @@ public class MySQLConn implements Closeable
 	{
 		try
 		{
+			log.info("executeQuery ", sql);
 			ResultSet resultSet = stmt.executeQuery(sql);
 			resultSets.add(resultSet);
 			return resultSet;
