@@ -85,7 +85,7 @@ public class Link
 
 	public String getRemoteAddress()
 	{
-		if (getChannel() != null)
+		if (getChannel() != null && getChannel().remoteAddress() != null)
 		{
 			return getChannel().remoteAddress().toString();
 		}
@@ -98,11 +98,11 @@ public class Link
 
 	public String getLocalAddress()
 	{
-		if (getChannel() != null)
+		if (getChannel() != null && getChannel().localAddress() != null)
 		{
 			return getChannel().localAddress().toString();
 		}
-		else if (getWebSocket() != null)
+		else if (getWebSocket() != null && getWebSocket().getLocalSocketAddress() != null)
 		{
 			return getWebSocket().getLocalSocketAddress().toString();
 		}
