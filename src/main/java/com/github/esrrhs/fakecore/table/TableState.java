@@ -21,11 +21,13 @@ public class TableState
 
 	public void changeState(int state)
 	{
+		cancelAllWaitTimer();
 		gameTable.changeState(state, null);
 	}
 
 	public void changeState(int state, Object param)
 	{
+		cancelAllWaitTimer();
 		gameTable.changeState(state, param);
 	}
 
