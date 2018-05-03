@@ -6,7 +6,7 @@ core code for game
 <dependency>
     <groupId>com.github.esrrhs</groupId>
     <artifactId>fakecore</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.13</version>
 </dependency>
 
 ```

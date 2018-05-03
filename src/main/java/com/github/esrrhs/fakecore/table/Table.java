@@ -1,12 +1,13 @@
 package com.github.esrrhs.fakecore.table;
 
-import com.github.esrrhs.fakecore.net.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.github.esrrhs.fakecore.net.Message;
 
 public final class Table extends Thread
 {
@@ -212,12 +213,18 @@ public final class Table extends Thread
 		this.destroy = destroy;
 	}
 
-	public void changeState(int stateId, Object param)
+	protected void changeState(int stateId, Object param)
 	{
 		TableMessage msg = new TableMessage();
 		msg.type = TableMessage.Type.SwitchState.ordinal();
 		msg.stateId = stateId;
 		msg.param = param;
+
+		if (!changeState.isEmpty())
+		{
+			log.error("changeState overwrite {}", stateId);
+			changeState.clear();
+		}
 
 		try
 		{
