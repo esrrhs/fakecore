@@ -85,26 +85,40 @@ public class Link
 
 	public String getRemoteAddress()
 	{
-		if (getChannel() != null && getChannel().remoteAddress() != null)
+		try
 		{
-			return getChannel().remoteAddress().toString();
+			if (getChannel() != null && getChannel().remoteAddress() != null)
+			{
+				return getChannel().remoteAddress().toString();
+			}
+			else if (getWebSocket() != null && getWebSocket().getRemoteSocketAddress() != null)
+			{
+				return getWebSocket().getRemoteSocketAddress().toString();
+			}
 		}
-		else if (getWebSocket() != null && getWebSocket().getRemoteSocketAddress() != null)
+		catch (Exception e)
 		{
-			return getWebSocket().getRemoteSocketAddress().toString();
+
 		}
 		return "";
 	}
 
 	public String getLocalAddress()
 	{
-		if (getChannel() != null && getChannel().localAddress() != null)
+		try
 		{
-			return getChannel().localAddress().toString();
+			if (getChannel() != null && getChannel().localAddress() != null)
+			{
+				return getChannel().localAddress().toString();
+			}
+			else if (getWebSocket() != null && getWebSocket().getLocalSocketAddress() != null)
+			{
+				return getWebSocket().getLocalSocketAddress().toString();
+			}
 		}
-		else if (getWebSocket() != null && getWebSocket().getLocalSocketAddress() != null)
+		catch (Exception e)
 		{
-			return getWebSocket().getLocalSocketAddress().toString();
+
 		}
 		return "";
 	}
