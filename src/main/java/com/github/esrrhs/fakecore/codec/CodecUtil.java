@@ -7,7 +7,7 @@ import java.net.URLEncoder;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 public class CodecUtil
 {
@@ -221,7 +221,7 @@ public class CodecUtil
 		if (html == null || html.length() == 0)
 			return null;
 
-		return StringEscapeUtils.escapeHtml(html);
+		return StringEscapeUtils.escapeHtml4(html);
 	}
 
 	// Html 反转码.
@@ -230,7 +230,7 @@ public class CodecUtil
 		if (escapedHtml == null || escapedHtml.length() == 0)
 			return null;
 
-		return StringEscapeUtils.unescapeHtml(escapedHtml);
+		return StringEscapeUtils.unescapeHtml4(escapedHtml);
 	}
 
 	// Xml转码.
@@ -239,7 +239,7 @@ public class CodecUtil
 		if (xml == null || xml.length() == 0)
 			return null;
 
-		return StringEscapeUtils.escapeXml(xml);
+		return StringEscapeUtils.escapeXml10(xml);
 	}
 
 	// Xml 反转码.
