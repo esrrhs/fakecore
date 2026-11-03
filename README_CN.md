@@ -33,14 +33,14 @@
 <dependency>
     <groupId>com.github.esrrhs</groupId>
     <artifactId>fakecore</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'com.github.esrrhs:fakecore:1.1.0'
+implementation 'com.github.esrrhs:fakecore:1.1.1'
 ```
 
 ## 源码构建
@@ -119,9 +119,16 @@ public class MyGame implements GamePlugin {
 * **RedisMgr** 支持路径覆盖、密码、超时与池参数；默认路径兼容。
 * Jedis 升级到 4.4.x；mysql-connector-j 8.3.x。
 * 自定义 Base64 改为委托 commons-codec，包级 API 保留。
-* **fastjson 1.2.x** 暂未迁移到 fastjson2（避免破坏 `Core`/`ConfigMgr`），请注意安全风险并减少新增用法。
+* **fastjson2 2.0.x** 已替换 fastjson 1.2.x。请将 `com.alibaba.fastjson.*` 改为 `com.alibaba.fastjson2.*`（含 `ArgsMgr.getJsonObject()` 返回类型）。
 * **javax.mail** 保留以兼容编译；后续大版本可考虑 jakarta.mail。
 * GeoIP 数据库可选；新增 Netty WebSocket，旧 WS 标记废弃。
+
+## 迁移说明（1.1.0 → 1.1.1）
+
+* 在保持 **Java 8** 字节码（`maven.compiler.source/target` 1.8）前提下刷新依赖。
+* **fastjson → fastjson2**（`com.alibaba.fastjson2:fastjson2:2.0.66`）；调用方需改 import。
+* 升级 Netty 4.1.x、Jedis 4.4.x 补丁、logback 1.3.x、mysql-connector-j 8.4.x、geoip2 2.17.x、Apache Commons、JUnit 5.14.x 及构建插件。
+* 为兼容 Java 8 / API 稳定性刻意未改：HikariCP 4.0.3、Java-WebSocket 1.5.7（不升 1.6）、javax.mail 1.6.2（不改 jakarta.mail）、Jedis 5+、logback 1.4+、geoip2 3+、JUnit 6、Netty 4.2。
 
 ## 发布说明
 

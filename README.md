@@ -33,14 +33,14 @@ Card/board game server framework with networking, config, storage, and pluggable
 <dependency>
     <groupId>com.github.esrrhs</groupId>
     <artifactId>fakecore</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'com.github.esrrhs:fakecore:1.1.0'
+implementation 'com.github.esrrhs:fakecore:1.1.1'
 ```
 
 ## Building from Source
@@ -130,10 +130,17 @@ See [`examples/demo-table`](examples/demo-table) for a runnable demo (no Redis/M
 * **Jedis** upgraded to 4.4.x (API compatible for this wrapper).
 * **mysql-connector-j** 8.3.x; driver class `com.mysql.cj.jdbc.Driver`.
 * Custom Base64 implementations delegate to **commons-codec**; package APIs kept.
-* **fastjson 1.2.x** retained (known security surface). Avoid new usages; a fastjson2 migration was deferred to keep `Core`/`ConfigMgr` stable. Track upstream advisories.
+* **fastjson2 2.0.x** replaces fastjson 1.2.x. Update imports from `com.alibaba.fastjson.*` to `com.alibaba.fastjson2.*` (including `ArgsMgr.getJsonObject()` return type).
 * **javax.mail** retained for compile compatibility; consider jakarta.mail in a future major.
 * GeoIP DB optional (see above).
 * New Netty WebSocket types; legacy WS deprecated.
+
+## Migration notes (1.1.0 → 1.1.1)
+
+* Dependency refresh while keeping **Java 8** bytecode (`maven.compiler.source/target` 1.8).
+* Migrated **fastjson → fastjson2** (`com.alibaba.fastjson2:fastjson2:2.0.66`); callers must switch imports.
+* Bumped Netty 4.1.x, Jedis 4.4.x patch, logback 1.3.x, mysql-connector-j 8.4.x, geoip2 2.17.x, Apache Commons, JUnit 5.14.x, and build plugins.
+* Intentionally unchanged for Java 8 / API safety: HikariCP 4.0.3, Java-WebSocket 1.5.7 (not 1.6), javax.mail 1.6.2 (not jakarta.mail), Jedis 5+, logback 1.4+, geoip2 3+, JUnit 6, Netty 4.2.
 
 ## Publishing
 

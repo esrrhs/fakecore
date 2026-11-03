@@ -1,6 +1,6 @@
 package com.github.esrrhs.fakecore.net;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.github.esrrhs.fakecore.Core;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;

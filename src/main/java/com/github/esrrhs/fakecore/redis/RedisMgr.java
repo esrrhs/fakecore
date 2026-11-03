@@ -1,7 +1,7 @@
 package com.github.esrrhs.fakecore.redis;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.github.esrrhs.fakecore.args.ArgsMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
