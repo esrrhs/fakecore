@@ -33,14 +33,14 @@ Card/board game server framework with networking, config, storage, and pluggable
 <dependency>
     <groupId>com.github.esrrhs</groupId>
     <artifactId>fakecore</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'com.github.esrrhs:fakecore:1.1.1'
+implementation 'com.github.esrrhs:fakecore:1.1.2'
 ```
 
 ## Building from Source
@@ -141,6 +141,11 @@ See [`examples/demo-table`](examples/demo-table) for a runnable demo (no Redis/M
 * Migrated **fastjson → fastjson2** (`com.alibaba.fastjson2:fastjson2:2.0.66`); callers must switch imports.
 * Bumped Netty 4.1.x, Jedis 4.4.x patch, logback 1.3.x, mysql-connector-j 8.4.x, geoip2 2.17.x, Apache Commons, JUnit 5.14.x, and build plugins.
 * Intentionally unchanged for Java 8 / API safety: HikariCP 4.0.3, Java-WebSocket 1.5.7 (not 1.6), javax.mail 1.6.2 (not jakarta.mail), Jedis 5+, logback 1.4+, geoip2 3+, JUnit 6, Netty 4.2.
+
+## Migration notes (1.1.1 → 1.1.2)
+
+* Expanded pure unit tests (no live Redis/MySQL/network bind) and raised JaCoCo coverage.
+* Soft JaCoCo LINE coverage floor set to 45% in `pom.xml`.
 
 ## Publishing
 

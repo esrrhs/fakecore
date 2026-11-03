@@ -33,14 +33,14 @@
 <dependency>
     <groupId>com.github.esrrhs</groupId>
     <artifactId>fakecore</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'com.github.esrrhs:fakecore:1.1.1'
+implementation 'com.github.esrrhs:fakecore:1.1.2'
 ```
 
 ## 源码构建
@@ -129,6 +129,11 @@ public class MyGame implements GamePlugin {
 * **fastjson → fastjson2**（`com.alibaba.fastjson2:fastjson2:2.0.66`）；调用方需改 import。
 * 升级 Netty 4.1.x、Jedis 4.4.x 补丁、logback 1.3.x、mysql-connector-j 8.4.x、geoip2 2.17.x、Apache Commons、JUnit 5.14.x 及构建插件。
 * 为兼容 Java 8 / API 稳定性刻意未改：HikariCP 4.0.3、Java-WebSocket 1.5.7（不升 1.6）、javax.mail 1.6.2（不改 jakarta.mail）、Jedis 5+、logback 1.4+、geoip2 3+、JUnit 6、Netty 4.2。
+
+## 迁移说明（1.1.1 → 1.1.2）
+
+* 扩充纯单元测试（避免真实 Redis/MySQL/网络绑定），提升 JaCoCo 覆盖率。
+* 在 `pom.xml` 中设置软性 JaCoCo LINE 覆盖率下限 45%。
 
 ## 发布说明
 
