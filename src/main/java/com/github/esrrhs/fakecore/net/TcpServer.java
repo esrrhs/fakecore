@@ -75,4 +75,31 @@ public class TcpServer extends TcpObject
 		log.info("TcpServer listnening on port {}", port);
 	}
 
+
+	public void stop()
+	{
+		try
+		{
+			if (channel != null)
+			{
+				channel.close().syncUninterruptibly();
+				channel = null;
+			}
+		}
+		finally
+		{
+			if (bossEventLoopGroup != null)
+			{
+				bossEventLoopGroup.shutdownGracefully();
+				bossEventLoopGroup = null;
+			}
+			if (workerEventLoopGroup != null)
+			{
+				workerEventLoopGroup.shutdownGracefully();
+				workerEventLoopGroup = null;
+			}
+		}
+		log.info("TcpServer stopped port {}", port);
+	}
+
 }

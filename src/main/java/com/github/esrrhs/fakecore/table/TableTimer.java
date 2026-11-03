@@ -21,6 +21,7 @@ class TableTimer extends Thread
 				if (INSTANCE == null)
 				{
 					INSTANCE = new TableTimer();
+					INSTANCE.setDaemon(true);
 					INSTANCE.start();
 				}
 			}

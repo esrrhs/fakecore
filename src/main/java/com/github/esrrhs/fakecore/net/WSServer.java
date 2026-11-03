@@ -13,6 +13,10 @@ import java.nio.charset.StandardCharsets;
 /**
  * Created by esrrhs on 2018/3/20.
  */
+/**
+ * @deprecated Prefer {@link NettyWSServer} for new code.
+ */
+@Deprecated
 public class WSServer extends WSObject
 {
 	private static Logger log = LoggerFactory.getLogger(WSServer.class);

@@ -14,6 +14,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by esrrhs on 2018/3/20.
  */
+/**
+ * @deprecated Legacy Java-WebSocket client thread; prefer {@link NettyWSClient}.
+ */
+@Deprecated
 public class WSClientThread extends Thread
 {
 	private static Logger log = LoggerFactory.getLogger(WSClient.class);

@@ -13,17 +13,17 @@ Card/board game server framework with networking, config, storage, and pluggable
 
 ## Overview
 
-**fakecore** is a Java library for building card and board game servers. It provides TCP and WebSocket networking (Netty / Java-WebSocket), configuration loading, file helpers, MySQL and Redis access, codecs, and a pluggable table/room model for game logic.
+**fakecore** is a Java library for building card and board game servers. It provides TCP and WebSocket networking (Netty preferred), configuration loading, file helpers, MySQL (HikariCP) and Redis access, codecs, and a pluggable table/room model for game logic.
 
 ## Modules
 
-* **Network** — TCP and WebSocket client/server, message codecs, processor pool
+* **Network** — TCP (`TcpServer` / `TcpClient`) and WebSocket (`NettyWSServer` / `NettyWSClient`; legacy Java-WebSocket classes are deprecated), message codecs, processor pool
 * **Config** — JSON-based configuration loading
 * **File** — file helpers
-* **MySQL** — connection and manager utilities
-* **Redis** — Jedis pool manager
-* **Table** — pluggable room/table lifecycle and timers
-* **Codec / Util** — Base64/RC4/encrypt helpers, GeoIP, mail utilities
+* **MySQL** — HikariCP pool via `MySQLMgr`, optional `MySQLConn` wrapper
+* **Redis** — Jedis pool manager with configurable path / password / pool settings
+* **Table** — pluggable room/table lifecycle, striped shared executors, timers, `GamePlugin` hooks
+* **Codec / Util** — Base64/RC4/encrypt helpers (commons-codec), optional GeoIP, mail utilities
 
 ## Installation
 
@@ -33,24 +33,107 @@ Card/board game server framework with networking, config, storage, and pluggable
 <dependency>
     <groupId>com.github.esrrhs</groupId>
     <artifactId>fakecore</artifactId>
-    <version>1.0.18</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'com.github.esrrhs:fakecore:1.0.18'
+implementation 'com.github.esrrhs:fakecore:1.1.0'
 ```
 
 ## Building from Source
 
-Build and run tests with the included Maven Wrapper:
+Requires JDK 8+ (CI uses 17; bytecode target remains **1.8**).
 
 ```bash
 ./mvnw clean test
 ./mvnw package
 ```
+
+JaCoCo coverage reports are written to `target/site/jacoco/` during `test`.
+
+## Config samples
+
+### redis.json
+
+Default path: `./bin/config/redis.json`. Override with:
+
+* system property `fakecore.redis.config`
+* env `FAKECORE_REDIS_CONFIG`
+* ArgsMgr JSON key `redisConfig`
+* or `RedisMgr.init("/path/to/redis.json")`
+
+```json
+{
+  "ip": "127.0.0.1",
+  "port": 6379,
+  "password": "",
+  "timeout": 2000,
+  "maxTotal": 16,
+  "maxIdle": 8,
+  "minIdle": 0,
+  "database": 0
+}
+```
+
+### MySQL
+
+```java
+MySQLInfo info = new MySQLInfo();
+info.setUrl("jdbc:mysql://127.0.0.1:3306/game?useSSL=false&serverTimezone=UTC");
+info.setUser("root");
+info.setPasswd("secret");
+MySQLMgr.init(10, info);
+
+try (Connection c = MySQLMgr.getConnection()) {
+    // ...
+}
+
+// or legacy wrapper (close returns connection to Hikari pool)
+try (MySQLConn conn = MySQLMgr.getConn()) {
+    conn.executeQuery("SELECT 1");
+}
+```
+
+## GamePlugin sketch
+
+```java
+public class MyGame implements GamePlugin {
+    public void construct(Table table) {
+        table.addState(1, new TableState(table) { /* ... */ });
+        table.addState(99, new TableState(table));
+        table.setExceptionStateId(99);
+    }
+    public boolean init(TablePlayerInfo creator, Object param) { return true; }
+    // optional defaults: onPlayerEnter/Leave, onPlayerDisconnect/Reconnect, onDestroy
+}
+```
+
+See [`examples/demo-table`](examples/demo-table) for a runnable demo (no Redis/MySQL).
+
+## Network notes
+
+* Prefer **`NettyWSServer` / `NettyWSClient`** (+ `NettyWSHandler`) for WebSocket. Lifecycle: `ini` → `send*` → `stop`/`close`, similar to TCP.
+* `WSServer` / `WSClient` (Java-WebSocket) remain available but are **`@Deprecated`**.
+
+## GeoIP
+
+`GeoLite2-Country.mmdb` is **not** shipped in the default jar. Copy it from [`optional-resources/`](optional-resources/) onto your classpath to enable lookups. `GeoIPUtil.getCountryCode` returns `null` when the DB is absent.
+
+## Migration notes (1.0.18 → 1.1.0)
+
+* **Table** no longer extends `Thread`. Loops run on shared striped executors (`TableScheduler`). `TableMgr` entry points are unchanged; call `table.start(stateId)` as before.
+* **MySQLMgr** uses HikariCP. Prefer `getConnection()`. `getConn()` still works; `close()` returns to the pool. `getFree()` is deprecated/unused.
+* **RedisMgr** supports config path override, password, timeout, pool sizing. Default path unchanged.
+* **Jedis** upgraded to 4.4.x (API compatible for this wrapper).
+* **mysql-connector-j** 8.3.x; driver class `com.mysql.cj.jdbc.Driver`.
+* Custom Base64 implementations delegate to **commons-codec**; package APIs kept.
+* **fastjson 1.2.x** retained (known security surface). Avoid new usages; a fastjson2 migration was deferred to keep `Core`/`ConfigMgr` stable. Track upstream advisories.
+* **javax.mail** retained for compile compatibility; consider jakarta.mail in a future major.
+* GeoIP DB optional (see above).
+* New Netty WebSocket types; legacy WS deprecated.
 
 ## Publishing
 

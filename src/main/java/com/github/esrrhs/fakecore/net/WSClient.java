@@ -6,6 +6,10 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by esrrhs on 2018/3/20.
  */
+/**
+ * @deprecated Prefer {@link NettyWSClient} for new code.
+ */
+@Deprecated
 public class WSClient extends WSObject
 {
 	private static Logger log = LoggerFactory.getLogger(WSClient.class);

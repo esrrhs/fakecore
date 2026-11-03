@@ -10,6 +10,10 @@ import java.nio.ByteBuffer;
 /**
  * Created by esrrhs on 2018/3/20.
  */
+/**
+ * @deprecated Legacy Java-WebSocket handler; prefer {@link NettyWSHandler}.
+ */
+@Deprecated
 public class WSHandler
 {
 	private static Logger log = LoggerFactory.getLogger(WSHandler.class);

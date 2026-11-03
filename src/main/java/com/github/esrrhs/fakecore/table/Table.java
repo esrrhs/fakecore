@@ -3,13 +3,18 @@ package com.github.esrrhs.fakecore.table;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.esrrhs.fakecore.net.Message;
 
-public final class Table extends Thread
+/**
+ * Per-table state machine. Message loops run on {@link TableScheduler} (striped
+ * single-thread executors) instead of one dedicated Thread per table.
+ */
+public final class Table
 {
 	private static Logger log = LoggerFactory.getLogger(Table.class);
 
@@ -17,6 +22,7 @@ public final class Table extends Thread
 	private int tableId;
 
 	private volatile boolean destroy = false;
+	private final AtomicBoolean loopStarted = new AtomicBoolean(false);
 
 	private ArrayBlockingQueue<TableMessage> queue = new ArrayBlockingQueue<>(256);
 	private ArrayBlockingQueue<TableMessage> changeState = new ArrayBlockingQueue<>(2);
@@ -64,9 +70,20 @@ public final class Table extends Thread
 
 	public void start(int initStateId)
 	{
-		this.start();
+		startLoop();
 		changeState(initStateId, null);
 		waitState(initStateId);
+	}
+
+	/**
+	 * Submit the table message loop onto the shared striped executor (idempotent).
+	 */
+	public void startLoop()
+	{
+		if (loopStarted.compareAndSet(false, true))
+		{
+			TableScheduler.submit(tableId, this::runLoop);
+		}
 	}
 
 	public int getTableId()
@@ -136,6 +153,14 @@ public final class Table extends Thread
 		newPlayer.setTableId(tableId);
 		newPlayer.setRoomId(roomId + "");
 		players.add(newPlayer);
+		try
+		{
+			gamePlugin.onPlayerEnter(newPlayer);
+		}
+		catch (Exception e)
+		{
+			log.error("onPlayerEnter", e);
+		}
 	}
 
 	public void removePlayer(TablePlayerInfo playerInfo)
@@ -146,6 +171,38 @@ public final class Table extends Thread
 		}
 		players.remove(playerInfo);
 		playerInfo.setTableId(0);
+		try
+		{
+			gamePlugin.onPlayerLeave(playerInfo);
+		}
+		catch (Exception e)
+		{
+			log.error("onPlayerLeave", e);
+		}
+	}
+
+	public void playerDisconnect(TablePlayerInfo playerInfo)
+	{
+		try
+		{
+			gamePlugin.onPlayerDisconnect(playerInfo);
+		}
+		catch (Exception e)
+		{
+			log.error("onPlayerDisconnect", e);
+		}
+	}
+
+	public void playerReconnect(TablePlayerInfo playerInfo)
+	{
+		try
+		{
+			gamePlugin.onPlayerReconnect(playerInfo);
+		}
+		catch (Exception e)
+		{
+			log.error("onPlayerReconnect", e);
+		}
 	}
 
 	public int getRoomId()
@@ -210,7 +267,19 @@ public final class Table extends Thread
 
 	public void setDestroy(boolean destroy)
 	{
+		boolean was = this.destroy;
 		this.destroy = destroy;
+		if (destroy && !was)
+		{
+			try
+			{
+				gamePlugin.onDestroy(this);
+			}
+			catch (Exception e)
+			{
+				log.error("onDestroy", e);
+			}
+		}
 	}
 
 	protected void changeState(int stateId, Object param)
@@ -280,12 +349,13 @@ public final class Table extends Thread
 			catch (InterruptedException e)
 			{
 				log.info("waitState", e);
+				Thread.currentThread().interrupt();
+				return;
 			}
 		}
 	}
 
-	@Override
-	public void run()
+	private void runLoop()
 	{
 		while (!destroy)
 		{
