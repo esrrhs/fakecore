@@ -7,23 +7,26 @@
 
 Card/board game server framework with networking, config, storage, and pluggable table management.
 
-[English](README.md) | [Chinese](README_CN.md)
+**Languages:** [English](README.md) (primary) · [中文](README_CN.md)
 
 ---
 
 ## Overview
 
-**fakecore** is a Java library for building card and board game servers. It provides TCP and WebSocket networking (Netty preferred), configuration loading, file helpers, MySQL (HikariCP) and Redis access, codecs, and a pluggable table/room model for game logic.
+**fakecore** is a Java library for building card and board game servers. It provides TCP and WebSocket networking (Netty preferred), JSON config loading, file helpers, MySQL (HikariCP) and Redis access, codecs, and a pluggable table/room model.
+
+Current release: **1.1.2** (Java **8** bytecode; CI builds with JDK 17).
 
 ## Modules
 
-* **Network** — TCP (`TcpServer` / `TcpClient`) and WebSocket (`NettyWSServer` / `NettyWSClient`; legacy Java-WebSocket classes are deprecated), message codecs, processor pool
-* **Config** — JSON-based configuration loading
-* **File** — file helpers
-* **MySQL** — HikariCP pool via `MySQLMgr`, optional `MySQLConn` wrapper
-* **Redis** — Jedis pool manager with configurable path / password / pool settings
-* **Table** — pluggable room/table lifecycle, striped shared executors, timers, `GamePlugin` hooks
-* **Codec / Util** — Base64/RC4/encrypt helpers (commons-codec), optional GeoIP, mail utilities
+| Area | What you get |
+|------|----------------|
+| **Network** | TCP (`TcpServer` / `TcpClient`); WebSocket via `NettyWSServer` / `NettyWSClient` (legacy Java-WebSocket types are `@Deprecated`); message codecs; processor pool |
+| **Config / Args / File** | JSON config, CLI/JSON args, file helpers |
+| **MySQL** | HikariCP pool through `MySQLMgr`, optional `MySQLConn` wrapper |
+| **Redis** | Jedis pool with path / password / pool overrides |
+| **Table** | Room/table lifecycle on striped shared executors, timers, `GamePlugin` hooks |
+| **Codec / Util** | Base64 / RC4 / encrypt (commons-codec), optional GeoIP, mail helpers |
 
 ## Installation
 
@@ -43,27 +46,33 @@ Card/board game server framework with networking, config, storage, and pluggable
 implementation 'com.github.esrrhs:fakecore:1.1.2'
 ```
 
-## Building from Source
-
-Requires JDK 8+ (CI uses 17; bytecode target remains **1.8**).
+## Build, test, and coverage
 
 ```bash
 ./mvnw clean test
 ./mvnw package
 ```
 
-JaCoCo coverage reports are written to `target/site/jacoco/` during `test`.
+- Unit tests: **JUnit Jupiter 5** + Surefire
+- Coverage: **JaCoCo** report at `target/site/jacoco/` (soft LINE floor **45%** in `pom.xml`)
+- Demo (no Redis/MySQL): [`examples/demo-table`](examples/demo-table)
+
+## CI
+
+GitHub Actions workflow [`.github/workflows/maven.yml`](.github/workflows/maven.yml):
+
+- Triggers: `push` and `pull_request`
+- JDK 17 (Temurin) + Maven cache
+- Runs `./mvnw -B clean test package`
+- Uploads JaCoCo HTML as artifact `jacoco-report`
+
+Dependabot watches Maven and GitHub Actions. Publishing to Maven Central is [`.github/workflows/publish.yml`](.github/workflows/publish.yml).
 
 ## Config samples
 
 ### redis.json
 
-Default path: `./bin/config/redis.json`. Override with:
-
-* system property `fakecore.redis.config`
-* env `FAKECORE_REDIS_CONFIG`
-* ArgsMgr JSON key `redisConfig`
-* or `RedisMgr.init("/path/to/redis.json")`
+Default path: `./bin/config/redis.json`. Override with system property `fakecore.redis.config`, env `FAKECORE_REDIS_CONFIG`, ArgsMgr key `redisConfig`, or `RedisMgr.init("/path/to/redis.json")`.
 
 ```json
 {
@@ -91,7 +100,7 @@ try (Connection c = MySQLMgr.getConnection()) {
     // ...
 }
 
-// or legacy wrapper (close returns connection to Hikari pool)
+// Legacy wrapper: close() returns the connection to Hikari
 try (MySQLConn conn = MySQLMgr.getConn()) {
     conn.executeQuery("SELECT 1");
 }
@@ -107,49 +116,41 @@ public class MyGame implements GamePlugin {
         table.setExceptionStateId(99);
     }
     public boolean init(TablePlayerInfo creator, Object param) { return true; }
-    // optional defaults: onPlayerEnter/Leave, onPlayerDisconnect/Reconnect, onDestroy
+    // Optional defaults: onPlayerEnter/Leave, onPlayerDisconnect/Reconnect, onDestroy
 }
 ```
 
-See [`examples/demo-table`](examples/demo-table) for a runnable demo (no Redis/MySQL).
-
 ## Network notes
 
-* Prefer **`NettyWSServer` / `NettyWSClient`** (+ `NettyWSHandler`) for WebSocket. Lifecycle: `ini` → `send*` → `stop`/`close`, similar to TCP.
-* `WSServer` / `WSClient` (Java-WebSocket) remain available but are **`@Deprecated`**.
+- Prefer **`NettyWSServer` / `NettyWSClient`** (+ `NettyWSHandler`). Lifecycle: `ini` → send → `stop` / `close`, similar to TCP.
+- `WSServer` / `WSClient` (Java-WebSocket) still compile but are **`@Deprecated`**.
 
 ## GeoIP
 
-`GeoLite2-Country.mmdb` is **not** shipped in the default jar. Copy it from [`optional-resources/`](optional-resources/) onto your classpath to enable lookups. `GeoIPUtil.getCountryCode` returns `null` when the DB is absent.
+`GeoLite2-Country.mmdb` is **not** in the default jar. Copy it from [`optional-resources/`](optional-resources/) onto the classpath to enable lookups. `GeoIPUtil.getCountryCode` returns `null` when the DB is missing.
 
-## Migration notes (1.0.18 → 1.1.0)
+## Migration notes
 
-* **Table** no longer extends `Thread`. Loops run on shared striped executors (`TableScheduler`). `TableMgr` entry points are unchanged; call `table.start(stateId)` as before.
-* **MySQLMgr** uses HikariCP. Prefer `getConnection()`. `getConn()` still works; `close()` returns to the pool. `getFree()` is deprecated/unused.
-* **RedisMgr** supports config path override, password, timeout, pool sizing. Default path unchanged.
-* **Jedis** upgraded to 4.4.x (API compatible for this wrapper).
-* **mysql-connector-j** 8.3.x; driver class `com.mysql.cj.jdbc.Driver`.
-* Custom Base64 implementations delegate to **commons-codec**; package APIs kept.
-* **fastjson2 2.0.x** replaces fastjson 1.2.x. Update imports from `com.alibaba.fastjson.*` to `com.alibaba.fastjson2.*` (including `ArgsMgr.getJsonObject()` return type).
-* **javax.mail** retained for compile compatibility; consider jakarta.mail in a future major.
-* GeoIP DB optional (see above).
-* New Netty WebSocket types; legacy WS deprecated.
+### 1.0.18 → 1.1.0
 
-## Migration notes (1.1.0 → 1.1.1)
+- **`Table` no longer extends `Thread`** — loops run on shared striped executors (`TableScheduler`). `TableMgr` entry points unchanged.
+- **MySQLMgr** → HikariCP; prefer `getConnection()`. `getFree()` deprecated.
+- **RedisMgr** — path override, password, timeout, pool sizing (default path kept).
+- Jedis 4.4.x; mysql-connector-j 8.x; Base64 via commons-codec; Netty WebSocket added; GeoIP DB optional.
 
-* Dependency refresh while keeping **Java 8** bytecode (`maven.compiler.source/target` 1.8).
-* Migrated **fastjson → fastjson2** (`com.alibaba.fastjson2:fastjson2:2.0.66`); callers must switch imports.
-* Bumped Netty 4.1.x, Jedis 4.4.x patch, logback 1.3.x, mysql-connector-j 8.4.x, geoip2 2.17.x, Apache Commons, JUnit 5.14.x, and build plugins.
-* Intentionally unchanged for Java 8 / API safety: HikariCP 4.0.3, Java-WebSocket 1.5.7 (not 1.6), javax.mail 1.6.2 (not jakarta.mail), Jedis 5+, logback 1.4+, geoip2 3+, JUnit 6, Netty 4.2.
+### 1.1.0 → 1.1.1
 
-## Migration notes (1.1.1 → 1.1.2)
+- **fastjson → fastjson2** (`com.alibaba.fastjson2`). Callers must switch imports (`com.alibaba.fastjson.*` → `com.alibaba.fastjson2.*`), including `ArgsMgr.getJsonObject()`.
+- Dependency refresh on the Java 8 line (Netty 4.1.x, Jedis 4.4.x, logback 1.3.x, Commons, JUnit 5.14.x, plugins).
+- Left alone for Java 8 / API safety: HikariCP 4.0.3, Java-WebSocket 1.5.x, javax.mail, Jedis 5+, logback 1.4+, geoip2 3+, Netty 4.2.
 
-* Expanded pure unit tests (no live Redis/MySQL/network bind) and raised JaCoCo coverage.
-* Soft JaCoCo LINE coverage floor set to 45% in `pom.xml`.
+### 1.1.1 → 1.1.2
+
+- Broader pure unit tests; JaCoCo line coverage raised; soft LINE gate **45%**.
 
 ## Publishing
 
-The [Publish to Maven Central](.github/workflows/publish.yml) workflow watches `pom.xml` on `master`. When the project version changes (or on manual `workflow_dispatch`), it builds, signs, and publishes to Maven Central via the Sonatype Portal. Repository secrets required: `GPG_PRIVATE_KEY`, `CENTRAL_USERNAME`, `CENTRAL_TOKEN`.
+When the version in `pom.xml` on `master` changes (or on `workflow_dispatch`), [publish.yml](.github/workflows/publish.yml) builds, signs, and publishes via the Sonatype Portal. Secrets: `GPG_PRIVATE_KEY`, `CENTRAL_USERNAME`, `CENTRAL_TOKEN`.
 
 ## License
 

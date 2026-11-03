@@ -5,25 +5,30 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.esrrhs/fakecore)](https://central.sonatype.com/artifact/com.github.esrrhs/fakecore)
 [![Build Status](https://github.com/esrrhs/fakecore/actions/workflows/maven.yml/badge.svg?branch=master)](https://github.com/esrrhs/fakecore/actions)
 
-棋牌游戏服务器框架，提供网络、配置、存储与插件化牌桌管理。
+棋牌游戏服务器框架：网络、配置、存储与插件化牌桌管理。
 
-[English](README.md) | [中文说明](README_CN.md)
+**语言：** [English](README.md)（主文档） · [中文](README_CN.md)（本文）
 
 ---
 
 ## 简介
 
-**fakecore** 是用于搭建棋牌类游戏服务器的 Java 库。内置 TCP / WebSocket 网络（推荐 Netty）、配置加载、文件工具、MySQL（HikariCP）与 Redis 访问、编解码，以及可插件化的牌桌/房间模型。
+**fakecore** 是用于搭建棋牌类游戏服务器的 Java 库。提供 TCP / WebSocket 网络（推荐 Netty）、JSON 配置、文件工具、MySQL（HikariCP）与 Redis、编解码，以及可插件化的牌桌/房间模型。
+
+当前版本：**1.1.2**（字节码目标 **Java 8**；CI 使用 JDK 17）。
+
+完整说明以英文 [README.md](README.md) 为准；本文为中文对照。
 
 ## 模块
 
-* **网络** — TCP（`TcpServer` / `TcpClient`）与 WebSocket（`NettyWSServer` / `NettyWSClient`；旧 Java-WebSocket 类已标记废弃）、消息编解码、处理器池
-* **配置** — 基于 JSON 的配置加载
-* **文件** — 文件相关工具
-* **MySQL** — 通过 `MySQLMgr` 使用 HikariCP，可选 `MySQLConn` 包装
-* **Redis** — Jedis 连接池，支持配置路径 / 密码 / 池参数
-* **牌桌** — 可插件化房间/牌桌生命周期、条带化共享线程池、定时器、`GamePlugin` 钩子
-* **编解码 / 工具** — Base64/RC4/加密（commons-codec）、可选 GeoIP、邮件工具
+| 模块 | 内容 |
+|------|------|
+| **网络** | TCP（`TcpServer` / `TcpClient`）；WebSocket 推荐 `NettyWSServer` / `NettyWSClient`（旧 Java-WebSocket 已 `@Deprecated`）；消息编解码；处理器池 |
+| **配置 / 参数 / 文件** | JSON 配置、参数解析、文件工具 |
+| **MySQL** | `MySQLMgr` + HikariCP，可选 `MySQLConn` |
+| **Redis** | Jedis 连接池，支持路径 / 密码 / 池参数覆盖 |
+| **牌桌** | 房间/牌桌生命周期（条带化共享线程池）、定时器、`GamePlugin` 钩子 |
+| **编解码 / 工具** | Base64 / RC4 / 加密（commons-codec）、可选 GeoIP、邮件工具 |
 
 ## 引入依赖
 
@@ -43,22 +48,33 @@
 implementation 'com.github.esrrhs:fakecore:1.1.2'
 ```
 
-## 源码构建
-
-需要 JDK 8+（CI 使用 17；字节码目标仍为 **1.8**）。
+## 构建、测试与覆盖率
 
 ```bash
 ./mvnw clean test
 ./mvnw package
 ```
 
-测试阶段会生成 JaCoCo 报告到 `target/site/jacoco/`。
+- 单元测试：**JUnit Jupiter 5** + Surefire
+- 覆盖率：**JaCoCo**，报告在 `target/site/jacoco/`（`pom.xml` 中 LINE 软门槛 **45%**）
+- 示例（无需 Redis/MySQL）：[`examples/demo-table`](examples/demo-table)
+
+## CI
+
+工作流 [`.github/workflows/maven.yml`](.github/workflows/maven.yml)：
+
+- 触发：`push`、`pull_request`
+- JDK 17（Temurin）+ Maven 缓存
+- 执行 `./mvnw -B clean test package`
+- 上传 JaCoCo HTML 产物 `jacoco-report`
+
+Dependabot 跟踪 Maven 与 GitHub Actions。发布见 [`.github/workflows/publish.yml`](.github/workflows/publish.yml)。
 
 ## 配置示例
 
 ### redis.json
 
-默认路径：`./bin/config/redis.json`。可通过系统属性 `fakecore.redis.config`、环境变量 `FAKECORE_REDIS_CONFIG`、ArgsMgr 的 `redisConfig`，或 `RedisMgr.init(path)` 覆盖。
+默认路径：`./bin/config/redis.json`。可用系统属性 `fakecore.redis.config`、环境变量 `FAKECORE_REDIS_CONFIG`、ArgsMgr 的 `redisConfig`，或 `RedisMgr.init(path)` 覆盖。
 
 ```json
 {
@@ -97,47 +113,41 @@ public class MyGame implements GamePlugin {
         table.setExceptionStateId(99);
     }
     public boolean init(TablePlayerInfo creator, Object param) { return true; }
-    // 可选默认方法：onPlayerEnter/Leave、onPlayerDisconnect/Reconnect、onDestroy
+    // 可选：onPlayerEnter/Leave、onPlayerDisconnect/Reconnect、onDestroy
 }
 ```
 
-可运行示例见 [`examples/demo-table`](examples/demo-table)（无需 Redis/MySQL）。
-
 ## 网络说明
 
-* 新代码请优先使用 **`NettyWSServer` / `NettyWSClient`**。生命周期与 TCP 类似：`ini` → 发送 → `stop`/`close`。
-* 基于 Java-WebSocket 的 `WSServer` / `WSClient` 仍可用，但已 **`@Deprecated`**。
+- 新代码请用 **`NettyWSServer` / `NettyWSClient`**。生命周期与 TCP 类似：`ini` → 发送 → `stop` / `close`。
+- `WSServer` / `WSClient` 仍可编译，但已 **`@Deprecated`**。
 
 ## GeoIP
 
-默认 jar **不再打包** `GeoLite2-Country.mmdb`。可从 [`optional-resources/`](optional-resources/) 复制到应用 classpath。数据库缺失时 `GeoIPUtil.getCountryCode` 返回 `null`。
+默认 jar **不打包** `GeoLite2-Country.mmdb`。可从 [`optional-resources/`](optional-resources/) 拷到 classpath。数据库缺失时 `GeoIPUtil.getCountryCode` 返回 `null`。
 
-## 迁移说明（1.0.18 → 1.1.0）
+## 迁移说明
 
-* **Table** 不再继承 `Thread`，消息循环跑在共享条带化线程池（`TableScheduler`）。`TableMgr` 对外入口不变。
-* **MySQLMgr** 改为 HikariCP；推荐 `getConnection()`。`getFree()` 已废弃。
-* **RedisMgr** 支持路径覆盖、密码、超时与池参数；默认路径兼容。
-* Jedis 升级到 4.4.x；mysql-connector-j 8.3.x。
-* 自定义 Base64 改为委托 commons-codec，包级 API 保留。
-* **fastjson2 2.0.x** 已替换 fastjson 1.2.x。请将 `com.alibaba.fastjson.*` 改为 `com.alibaba.fastjson2.*`（含 `ArgsMgr.getJsonObject()` 返回类型）。
-* **javax.mail** 保留以兼容编译；后续大版本可考虑 jakarta.mail。
-* GeoIP 数据库可选；新增 Netty WebSocket，旧 WS 标记废弃。
+### 1.0.18 → 1.1.0
 
-## 迁移说明（1.1.0 → 1.1.1）
+- **`Table` 不再继承 `Thread`**，消息循环在 `TableScheduler` 条带化线程池上；`TableMgr` 对外入口不变。
+- **MySQLMgr** 改为 HikariCP，推荐 `getConnection()`。
+- **RedisMgr** 支持路径 / 密码 / 超时 / 池参数；默认路径兼容。
+- Jedis 4.4.x、mysql-connector-j 8.x、commons-codec Base64、Netty WebSocket、GeoIP 可选。
 
-* 在保持 **Java 8** 字节码（`maven.compiler.source/target` 1.8）前提下刷新依赖。
-* **fastjson → fastjson2**（`com.alibaba.fastjson2:fastjson2:2.0.66`）；调用方需改 import。
-* 升级 Netty 4.1.x、Jedis 4.4.x 补丁、logback 1.3.x、mysql-connector-j 8.4.x、geoip2 2.17.x、Apache Commons、JUnit 5.14.x 及构建插件。
-* 为兼容 Java 8 / API 稳定性刻意未改：HikariCP 4.0.3、Java-WebSocket 1.5.7（不升 1.6）、javax.mail 1.6.2（不改 jakarta.mail）、Jedis 5+、logback 1.4+、geoip2 3+、JUnit 6、Netty 4.2。
+### 1.1.0 → 1.1.1
 
-## 迁移说明（1.1.1 → 1.1.2）
+- **fastjson → fastjson2**，请将 `com.alibaba.fastjson.*` 改为 `com.alibaba.fastjson2.*`（含 `ArgsMgr.getJsonObject()`）。
+- 在 Java 8 线上刷新 Netty / Jedis / logback / Commons / JUnit 等。
+- 为兼容刻意未升：HikariCP 5+、Java-WebSocket 1.6、jakarta.mail、Jedis 5+、logback 1.4+、geoip2 3+、Netty 4.2。
 
-* 扩充纯单元测试（避免真实 Redis/MySQL/网络绑定），提升 JaCoCo 覆盖率。
-* 在 `pom.xml` 中设置软性 JaCoCo LINE 覆盖率下限 45%。
+### 1.1.1 → 1.1.2
 
-## 发布说明
+- 扩充纯单元测试，提高 JaCoCo 覆盖率；LINE 软门槛 **45%**。
 
-[Publish to Maven Central](.github/workflows/publish.yml) 会监听 `master` 上的 `pom.xml`。当项目版本号发生变化（或手动触发 `workflow_dispatch`）时，会构建、签名并经由 Sonatype Portal 发布到 Maven Central。仓库需配置密钥：`GPG_PRIVATE_KEY`、`CENTRAL_USERNAME`、`CENTRAL_TOKEN`。
+## 发布
+
+`master` 上 `pom.xml` 版本变更（或手动 `workflow_dispatch`）时，[publish.yml](.github/workflows/publish.yml) 构建、签名并经 Sonatype Portal 发布。需配置：`GPG_PRIVATE_KEY`、`CENTRAL_USERNAME`、`CENTRAL_TOKEN`。
 
 ## 许可证
 
