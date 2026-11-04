@@ -5,7 +5,10 @@ import com.alibaba.fastjson2.JSONObject;
 import com.github.esrrhs.fakecore.args.ArgsMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.DefaultJedisClientConfig;
+import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisClientConfig;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -87,14 +90,15 @@ public class RedisMgr
 			config.setMinIdle(minIdle);
 			config.setTestOnBorrow(true);
 
+			DefaultJedisClientConfig.Builder clientBuilder = DefaultJedisClientConfig.builder()
+					.connectionTimeoutMillis(timeoutMs).socketTimeoutMillis(timeoutMs).database(database);
 			if (password != null && !password.isEmpty())
 			{
-				pool = new JedisPool(config, ip, port, timeoutMs, password, database);
+				clientBuilder.password(password);
 			}
-			else
-			{
-				pool = new JedisPool(config, ip, port, timeoutMs, null, database);
-			}
+			JedisClientConfig clientConfig = clientBuilder.build();
+
+			pool = new JedisPool(config, new HostAndPort(ip, port), clientConfig);
 
 			log.info("RedisMgr init ok path={} {}:{} db={} maxTotal={}", path.toAbsolutePath(), ip, port, database,
 					maxTotal);

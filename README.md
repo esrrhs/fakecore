@@ -15,7 +15,7 @@ Card/board game server framework with networking, config, storage, and pluggable
 
 **fakecore** is a Java library for building card and board game servers. It provides TCP and WebSocket networking (Netty preferred), JSON config loading, file helpers, MySQL (HikariCP) and Redis access, codecs, and a pluggable table/room model.
 
-Current release: **1.1.2** (Java **8** bytecode; CI builds with JDK 17).
+Current release: **1.2.0** (requires **Java 17**; CI builds with JDK 17 Temurin).
 
 ## Modules
 
@@ -36,14 +36,14 @@ Current release: **1.1.2** (Java **8** bytecode; CI builds with JDK 17).
 <dependency>
     <groupId>com.github.esrrhs</groupId>
     <artifactId>fakecore</artifactId>
-    <version>1.1.2</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'com.github.esrrhs:fakecore:1.1.2'
+implementation 'com.github.esrrhs:fakecore:1.2.0'
 ```
 
 ## Build, test, and coverage
@@ -53,7 +53,7 @@ implementation 'com.github.esrrhs:fakecore:1.1.2'
 ./mvnw package
 ```
 
-- Unit tests: **JUnit Jupiter 5** + Surefire
+- Unit tests: **JUnit Jupiter 6** + Surefire
 - Coverage: **JaCoCo** report at `target/site/jacoco/` (soft LINE floor **45%** in `pom.xml`)
 - Demo (no Redis/MySQL): [`examples/demo-table`](examples/demo-table)
 
@@ -147,6 +147,17 @@ public class MyGame implements GamePlugin {
 ### 1.1.1 → 1.1.2
 
 - Broader pure unit tests; JaCoCo line coverage raised; soft LINE gate **45%**.
+
+
+### 1.1.2 → 1.2.0
+
+- **Java baseline raised to 17** (bytecode `maven.compiler.source/target=17`). Java 8/11 no longer supported.
+- **Jedis 4.4.x → 8.0.2** — `RedisMgr` now builds the pool with `HostAndPort` + `DefaultJedisClientConfig`. Public helpers (`init` / `getJedis` / `shutdown` / config path resolution) are unchanged; callers that constructed `JedisPool` themselves should adopt the Jedis 5+ client-config API.
+- **javax.mail → Jakarta Mail** (`org.eclipse.angus:jakarta.mail`). Update imports: `javax.mail.*` → `jakarta.mail.*` (`GMailUtil` / `NeteaseMailUtil`).
+- **geoip2 2.x → 5.2.0** (needs Java 17). `GeoIPUtil.getCountryCode` / `isAvailable` behaviour unchanged when the optional MMDB is present.
+- **Netty 4.1.x → 4.2.20.Final**, **logback 1.3 → 1.6.6**, **mysql-connector-j 8.4 → 26.10.0**, HikariCP stays on 7.1.0.
+- Plugin / tooling refresh: Surefire 3.6.1, resources 3.5.0, central-publishing 0.12.0. GitHub Actions already on checkout@v7 / setup-java@v6 / upload-artifact@v7; Maven Wrapper remains Apache Maven 3.10.0.
+- `fakescript-java` left at **1.0.16** (no newer release on Maven Central).
 
 ## Publishing
 

@@ -15,7 +15,7 @@
 
 **fakecore** 是用于搭建棋牌类游戏服务器的 Java 库。提供 TCP / WebSocket 网络（推荐 Netty）、JSON 配置、文件工具、MySQL（HikariCP）与 Redis、编解码，以及可插件化的牌桌/房间模型。
 
-当前版本：**1.1.2**（字节码目标 **Java 8**；CI 使用 JDK 17）。
+当前版本：**1.2.0**（需要 **Java 17**；CI 使用 JDK 17 Temurin）。
 
 完整说明以英文 [README.md](README.md) 为准；本文为中文对照。
 
@@ -38,14 +38,14 @@
 <dependency>
     <groupId>com.github.esrrhs</groupId>
     <artifactId>fakecore</artifactId>
-    <version>1.1.2</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'com.github.esrrhs:fakecore:1.1.2'
+implementation 'com.github.esrrhs:fakecore:1.2.0'
 ```
 
 ## 构建、测试与覆盖率
@@ -55,7 +55,7 @@ implementation 'com.github.esrrhs:fakecore:1.1.2'
 ./mvnw package
 ```
 
-- 单元测试：**JUnit Jupiter 5** + Surefire
+- 单元测试：**JUnit Jupiter 6** + Surefire
 - 覆盖率：**JaCoCo**，报告在 `target/site/jacoco/`（`pom.xml` 中 LINE 软门槛 **45%**）
 - 示例（无需 Redis/MySQL）：[`examples/demo-table`](examples/demo-table)
 
@@ -144,6 +144,17 @@ public class MyGame implements GamePlugin {
 ### 1.1.1 → 1.1.2
 
 - 扩充纯单元测试，提高 JaCoCo 覆盖率；LINE 软门槛 **45%**。
+
+
+### 1.1.2 → 1.2.0
+
+- **Java 基线升至 17**（`maven.compiler.source/target=17`），不再支持 Java 8/11。
+- **Jedis 4.4.x → 8.0.2** — `RedisMgr` 使用 `HostAndPort` + `DefaultJedisClientConfig` 建池；对外 `init` / `getJedis` / `shutdown` / 配置路径解析不变。自行创建 `JedisPool` 的代码请改用 Jedis 5+ 客户端配置 API。
+- **javax.mail → Jakarta Mail**（`org.eclipse.angus:jakarta.mail`）。请将 `javax.mail.*` 改为 `jakarta.mail.*`（`GMailUtil` / `NeteaseMailUtil`）。
+- **geoip2 2.x → 5.2.0**（需 Java 17）。可选 MMDB 存在时，`GeoIPUtil` 行为不变。
+- **Netty 4.1 → 4.2.20.Final**、**logback 1.3 → 1.6.6**、**mysql-connector-j 8.4 → 26.10.0**；HikariCP 保持 7.1.0。
+- 插件刷新：Surefire 3.6.1、resources 3.5.0、central-publishing 0.12.0。Actions 已在 checkout@v7 / setup-java@v6 / upload-artifact@v7；Maven Wrapper 仍为 Apache Maven 3.10.0。
+- `fakescript-java` 仍为 **1.0.16**（Maven Central 无更新）。
 
 ## 发布
 
