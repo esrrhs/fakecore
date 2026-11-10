@@ -55,4 +55,16 @@ public class TcpClient extends TcpObject
 	{
 		this.tcpClientThread.closeChannel();
 	}
+
+	/**
+	 * Stop the client thread and close the current channel without shutting down
+	 * the caller-provided EventLoopGroup.
+	 */
+	public void shutdown()
+	{
+		if (this.tcpClientThread != null)
+		{
+			this.tcpClientThread.shutdown();
+		}
+	}
 }

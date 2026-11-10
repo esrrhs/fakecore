@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -62,5 +65,27 @@ class MySQLMgrTest
 		info.setConnectionTimeoutMs(500);
 		assertThrows(RuntimeException.class, () -> MySQLMgr.init(1, info));
 		assertFalse(MySQLMgr.isInitialized());
+	}
+
+	@Test
+	void initTimesOutWhenHandshakeNeverCompletes() throws Exception
+	{
+		try (ServerSocket silent = new ServerSocket())
+		{
+			silent.bind(new InetSocketAddress("127.0.0.1", 0), 50);
+			int port = silent.getLocalPort();
+			MySQLInfo info = new MySQLInfo();
+			info.setUrl("jdbc:mysql://127.0.0.1:" + port
+					+ "/x?useSSL=false&allowPublicKeyRetrieval=true&connectTimeout=800");
+			info.setUser("nobody");
+			info.setPasswd("nobody");
+			info.setConnectionTimeoutMs(800);
+			long t0 = System.currentTimeMillis();
+			assertThrows(RuntimeException.class, () -> MySQLMgr.init(1, info));
+			long elapsed = System.currentTimeMillis() - t0;
+			assertFalse(MySQLMgr.isInitialized());
+			assertTrue(elapsed >= 400, "expected a timeout rather than immediate refusal, elapsed=" + elapsed);
+			assertTrue(elapsed < 15000, "timeout should stay bounded, elapsed=" + elapsed);
+		}
 	}
 }

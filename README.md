@@ -49,12 +49,22 @@ implementation 'com.github.esrrhs:fakecore:1.2.0'
 ## Build, test, and coverage
 
 ```bash
+# Unit tests only (no Docker, MySQL, or Redis required)
 ./mvnw clean test
+
+# Unit tests + integration tests (real temporary MySQL and Redis)
+./mvnw verify
+
 ./mvnw package
 ```
 
-- Unit tests: **JUnit Jupiter 6** + Surefire
-- Coverage: **JaCoCo** report at `target/site/jacoco/` (soft LINE floor **45%** in `pom.xml`)
+- Unit tests: **JUnit Jupiter 6** + Surefire (`*Test.java`). These always run without Docker or live data stores.
+- Integration tests: Failsafe (`*IT.java`), executed by `./mvnw verify`. They connect to **real** temporary MySQL 8 and Redis 7, not mocks. A failure fails the build; tests are never treated as passed when the services cannot start.
+- How temporary services are started:
+  1. **Testcontainers** when Docker is available (`mysql:8.0.43`, `redis:7.4-alpine`). This is what GitHub Actions uses.
+  2. Otherwise, official `mysqld` / `redis-server` processes bound only to `127.0.0.1` on freshly allocated ports, with unique data directories. Existing services on `3306` / `6379` are never used.
+- Process-fallback binaries (optional, only when Docker is absent): set `FAKECORE_IT_MYSQL_BASEDIR` (MySQL generic Linux basedir containing `bin/mysqld`), `FAKECORE_IT_REDIS_SERVER`, and if needed `FAKECORE_IT_LIBAIO_DIR`. The helper also looks under `target/it-deps/`, `~/.cache/fakecore-it/`, `/tmp/fakecore-it-deps/`, and already-extracted official tarballs one level under `/tmp` (executables only). Flags: `-Dfakecore.it.forceDocker=true` or `-Dfakecore.it.forceProcess=true`.
+- Coverage: **JaCoCo** unit report at `target/site/jacoco/` after `test`; combined unit+IT report at `target/site/jacoco-merged/` after `verify` (soft LINE floor **45%** in `pom.xml`, applied to unit tests)
 - Demo (no Redis/MySQL): [`examples/demo-table`](examples/demo-table)
 
 ## CI
@@ -63,8 +73,9 @@ GitHub Actions workflow [`.github/workflows/maven.yml`](.github/workflows/maven.
 
 - Triggers: `push` and `pull_request`
 - JDK 17 (Temurin) + Maven cache
-- Runs `./mvnw -B clean test package`
-- Uploads JaCoCo HTML as artifact `jacoco-report`
+- Runs `./mvnw -B clean verify` (unit tests, package, and integration tests)
+- Ubuntu runners provide Docker, so integration tests use Testcontainers; an IT failure fails the job
+- Uploads JaCoCo HTML (unit and merged) as artifact `jacoco-report`
 
 Dependabot watches Maven and GitHub Actions. Publishing to Maven Central is [`.github/workflows/publish.yml`](.github/workflows/publish.yml).
 

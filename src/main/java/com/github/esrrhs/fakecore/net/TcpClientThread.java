@@ -34,6 +34,7 @@ public class TcpClientThread extends Thread
 	private TcpHandler tcpHandler;
 	private MessageCodec messageCodec;
 	private long createTime;
+	private volatile boolean stopped;
 
 	public void ini(EventLoopGroup group, int gsId, String gsName, String ip, int port, int queueSize,
 			TcpHandler tcpHandler, MessageCodec messageCodec)
@@ -65,7 +66,7 @@ public class TcpClientThread extends Thread
 	@Override
 	public void run()
 	{
-		while (true)
+		while (!stopped)
 		{
 			try
 			{
@@ -74,6 +75,10 @@ public class TcpClientThread extends Thread
 					connect();
 					if (!isConnected())
 					{
+						if (stopped)
+						{
+							break;
+						}
 						Thread.sleep(1000);
 						continue;
 					}
@@ -200,6 +205,17 @@ public class TcpClientThread extends Thread
 		}
 
 		channel = null;
+	}
+
+	/**
+	 * Stop the reconnect loop and close the current channel. The EventLoopGroup
+	 * is owned by the caller and is not shut down here.
+	 */
+	public void shutdown()
+	{
+		stopped = true;
+		closeChannel();
+		interrupt();
 	}
 
 }

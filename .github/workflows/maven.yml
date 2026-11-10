@@ -16,12 +16,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: 'maven'
-    - name: Build and test with coverage
-      run: ./mvnw -B clean test package
+    - name: Build, unit tests, and integration tests with coverage
+      run: ./mvnw -B clean verify
     - name: Upload JaCoCo report
       if: always()
       uses: actions/upload-artifact@v7
       with:
         name: jacoco-report
-        path: target/site/jacoco/
+        path: |
+          target/site/jacoco/
+          target/site/jacoco-merged/
         if-no-files-found: ignore

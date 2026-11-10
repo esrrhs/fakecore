@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
@@ -59,5 +60,33 @@ class ProcessorTest
 		processor.putMsg(2);
 		processor.putMsg(3);
 		block.countDown();
+	}
+
+	@Test
+	void processFuncExceptionDoesNotStopLoop() throws Exception
+	{
+		CountDownLatch processed = new CountDownLatch(1);
+		AtomicInteger attempts = new AtomicInteger();
+		Processor<String> processor = new Processor<>(8, new ProcessFunc<String>() {
+			@Override
+			public void process(String msg)
+			{
+				int n = attempts.incrementAndGet();
+				if ("boom".equals(msg))
+				{
+					throw new RuntimeException("isolated");
+				}
+				if ("ok".equals(msg))
+				{
+					processed.countDown();
+				}
+			}
+		});
+		processor.setDaemon(true);
+		processor.start();
+		processor.putMsg("boom");
+		processor.putMsg("ok");
+		assertTrue(processed.await(2, TimeUnit.SECONDS));
+		assertEquals(2, attempts.get());
 	}
 }

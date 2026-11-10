@@ -51,12 +51,22 @@ implementation 'com.github.esrrhs:fakecore:1.2.0'
 ## 构建、测试与覆盖率
 
 ```bash
+# 仅单元测试（不需要 Docker / MySQL / Redis）
 ./mvnw clean test
+
+# 单元测试 + 集成测试（连接真实的临时 MySQL 和 Redis）
+./mvnw verify
+
 ./mvnw package
 ```
 
-- 单元测试：**JUnit Jupiter 6** + Surefire
-- 覆盖率：**JaCoCo**，报告在 `target/site/jacoco/`（`pom.xml` 中 LINE 软门槛 **45%**）
+- 单元测试：**JUnit Jupiter 6** + Surefire（`*Test.java`）。不依赖 Docker 或已运行的数据存储，缺 Docker 时也应能通过。
+- 集成测试：Failsafe（`*IT.java`），由 `./mvnw verify` 执行。会连接**真实**的临时 MySQL 8 与 Redis 7，而不是 mock。启动失败或断言失败都会让构建失败，不会把跳过当成通过。
+- 临时服务启动顺序：
+  1. 有 Docker 时使用 **Testcontainers**（`mysql:8.0.43`、`redis:7.4-alpine`）。GitHub Actions 走这条路径。
+  2. 否则启动官方 `mysqld` / `redis-server` 进程，只绑定 `127.0.0.1` 和新分配的端口，使用独立数据目录。不会接入已有的 `3306` / `6379` 服务。
+- 无 Docker 时的进程回退（可选）：设置 `FAKECORE_IT_MYSQL_BASEDIR`（含 `bin/mysqld` 的官方 MySQL generic Linux 目录）、`FAKECORE_IT_REDIS_SERVER`，如有需要再设 `FAKECORE_IT_LIBAIO_DIR`。辅助类也会在 `target/it-deps/`、`~/.cache/fakecore-it/`、`/tmp/fakecore-it-deps/` 以及 `/tmp` 下一层已解压的官方包中查找可执行文件（只使用二进制，不使用其数据目录）。可用 `-Dfakecore.it.forceDocker=true` 或 `-Dfakecore.it.forceProcess=true` 强制路径。
+- 覆盖率：**JaCoCo**，`test` 后单元报告在 `target/site/jacoco/`；`verify` 后单元+集成合并报告在 `target/site/jacoco-merged/`（`pom.xml` 中 LINE 软门槛 **45%**，应用于单元测试）
 - 示例（无需 Redis/MySQL）：[`examples/demo-table`](examples/demo-table)
 
 ## CI
@@ -65,8 +75,9 @@ implementation 'com.github.esrrhs:fakecore:1.2.0'
 
 - 触发：`push`、`pull_request`
 - JDK 17（Temurin）+ Maven 缓存
-- 执行 `./mvnw -B clean test package`
-- 上传 JaCoCo HTML 产物 `jacoco-report`
+- 执行 `./mvnw -B clean verify`（单元测试、打包、集成测试）
+- Ubuntu runner 提供 Docker，集成测试走 Testcontainers；IT 失败则任务失败
+- 上传 JaCoCo HTML（单元与合并）产物 `jacoco-report`
 
 Dependabot 跟踪 Maven 与 GitHub Actions。发布见 [`.github/workflows/publish.yml`](.github/workflows/publish.yml)。
 

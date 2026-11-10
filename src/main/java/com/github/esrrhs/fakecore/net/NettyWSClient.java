@@ -122,9 +122,33 @@ public class NettyWSClient
 				}
 			});
 
-			ChannelFuture f = b.connect(host, port).sync();
-			channel = f.channel();
-			log.info("NettyWSClient connecting {}:{}{}", host, port, path);
+			ChannelFuture f = b.connect(host, port);
+			f.addListener((ChannelFutureListener) future -> {
+				if (stopped)
+				{
+					if (future.isSuccess())
+					{
+						future.channel().close();
+					}
+					return;
+				}
+				if (future.isSuccess())
+				{
+					channel = future.channel();
+					log.info("NettyWSClient connected {}:{}{}", host, port, path);
+				}
+				else
+				{
+					log.error("NettyWSClient connect fail {}:{}", host, port, future.cause());
+					scheduleReconnect();
+				}
+			});
+			// Initial ini() runs off the EventLoop and can wait; reconnect is scheduled
+			// on the EventLoop, where ChannelFuture.sync() would deadlock.
+			if (!f.channel().eventLoop().inEventLoop())
+			{
+				f.sync();
+			}
 		}
 		catch (Exception e)
 		{
