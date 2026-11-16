@@ -86,10 +86,13 @@ class NettyWSClientServerTest
 		RecordingHandler clientHandler = new RecordingHandler();
 		NettyWSClient client = startClient(port, clientHandler);
 		TestSockets.await(client::isConnected, 5000, "initial ws connect");
+		TestSockets.await(() -> clientHandler.opens.get() >= 1, 5000, "initial ws open");
+		int closesBefore = clientHandler.closes.get();
 
 		server.stop();
 		assertFalse(server.isListening());
-		TestSockets.await(() -> !client.isConnected(), 5000, "client should drop when server stops");
+		TestSockets.await(() -> clientHandler.closes.get() > closesBefore, 5000,
+				"client should observe disconnect when server stops");
 
 		RecordingHandler restarted = new RecordingHandler();
 		startServer(port, restarted);
@@ -175,12 +178,19 @@ class NettyWSClientServerTest
 		final AtomicReference<byte[]> lastBinary = new AtomicReference<>();
 		final List<String> texts = new CopyOnWriteArrayList<>();
 		final java.util.concurrent.atomic.AtomicInteger opens = new java.util.concurrent.atomic.AtomicInteger();
+		final java.util.concurrent.atomic.AtomicInteger closes = new java.util.concurrent.atomic.AtomicInteger();
 
 		@Override
 		public void onOpen(Channel channel)
 		{
 			lastChannel.set(channel);
 			opens.incrementAndGet();
+		}
+
+		@Override
+		public void onClose(Channel channel)
+		{
+			closes.incrementAndGet();
 		}
 
 		@Override

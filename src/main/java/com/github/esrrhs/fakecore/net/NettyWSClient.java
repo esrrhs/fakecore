@@ -46,10 +46,21 @@ public class NettyWSClient
 		this.handler = handler == null ? new NettyWSHandler() : handler;
 		this.group = new NioEventLoopGroup(1);
 		this.stopped = false;
-		connect();
+		connect(true);
 	}
 
 	private void connect()
+	{
+		connect(false);
+	}
+
+	/**
+	 * @param awaitConnect if true, block until the TCP connect attempt finishes. Must only
+	 *                     be true when called from a non-EventLoop thread (initial {@link #ini}).
+	 *                     Reconnect runs on the EventLoop and must not {@code sync()}, or the
+	 *                     loop deadlocks and the client never observes disconnect.
+	 */
+	private void connect(boolean awaitConnect)
 	{
 		try
 		{
@@ -143,9 +154,7 @@ public class NettyWSClient
 					scheduleReconnect();
 				}
 			});
-			// Initial ini() runs off the EventLoop and can wait; reconnect is scheduled
-			// on the EventLoop, where ChannelFuture.sync() would deadlock.
-			if (!f.channel().eventLoop().inEventLoop())
+			if (awaitConnect)
 			{
 				f.sync();
 			}

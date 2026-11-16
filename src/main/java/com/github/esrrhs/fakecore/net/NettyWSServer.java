@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Netty-based WebSocket server. Preferred over the legacy Java-WebSocket {@link WSServer}.
@@ -184,14 +185,16 @@ public class NettyWSServer
 		}
 		finally
 		{
+			// Wait for shutdown so the listen port is actually released before
+			// a caller (or a reconnecting test) rebinds the same address.
 			if (bossGroup != null)
 			{
-				bossGroup.shutdownGracefully();
+				bossGroup.shutdownGracefully(0, 2, TimeUnit.SECONDS).syncUninterruptibly();
 				bossGroup = null;
 			}
 			if (workerGroup != null)
 			{
-				workerGroup.shutdownGracefully();
+				workerGroup.shutdownGracefully(0, 2, TimeUnit.SECONDS).syncUninterruptibly();
 				workerGroup = null;
 			}
 		}
