@@ -10,6 +10,8 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by esrrhs on 2018/2/5.
  */
@@ -90,12 +92,12 @@ public class TcpServer extends TcpObject
 		{
 			if (bossEventLoopGroup != null)
 			{
-				bossEventLoopGroup.shutdownGracefully();
+				bossEventLoopGroup.shutdownGracefully(0, 2, TimeUnit.SECONDS).syncUninterruptibly();
 				bossEventLoopGroup = null;
 			}
 			if (workerEventLoopGroup != null)
 			{
-				workerEventLoopGroup.shutdownGracefully();
+				workerEventLoopGroup.shutdownGracefully(0, 2, TimeUnit.SECONDS).syncUninterruptibly();
 				workerEventLoopGroup = null;
 			}
 		}
